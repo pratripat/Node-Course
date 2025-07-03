@@ -6,11 +6,42 @@ mongoose.connect('mongodb://localhost/playground')
     .catch(err => console.log(err.message));
 
 const courseSchema = new mongoose.Schema({
-    name: String,
+    name: { 
+        type: String,
+        required: true,
+        minlength: 5,
+        maxlength: 255,
+        // match: /pattern/
+    },
+    category: {
+        type: String,
+        required: true,
+        enum: ['ai', 'cse', 'ece']
+    },
     author: String,
-    tags: [ String ],
+    tags: {
+        type: Array,
+        validate: {
+            validator: function(v) {
+                return new Promise((resolve) => {
+                    setTimeout(() => {
+                        resolve(v && v.length > 0);
+                    }, 4000);
+                });
+            },
+            message: 'A course should have atleast one tag.'
+        }
+    },
     date: { type: Date, default: Date.now },
-    isPublished: Boolean
+    isPublished: Boolean,
+    price: {
+        type: Number,
+        required: function() {
+            return this.isPublished;
+        },
+        min: 10,
+        max: 200
+    }
 });
 
 const Course = mongoose.model('Course', courseSchema);
@@ -18,13 +49,21 @@ const Course = mongoose.model('Course', courseSchema);
 async function createCourse() {
     const course = Course({
         name: 'Angular.js course',
+        category: '-',
         author: 'Prat',
-        tags: ['angular', 'backend'],
-        isPublished: true
+        tags: [],
+        isPublished: true,
+        price: 15
     });
 
-    const result = await course.save();
-    console.log(result);
+    try {
+        const result = await course.save();
+        console.log(result);
+    } catch (ex) {
+        for (field in ex.errors) {
+            console.log(ex.errors[field].message)
+        }
+    }
 }
 
 async function getCourses() {
@@ -47,4 +86,14 @@ async function getCourses() {
     console.log(courses);
 }
 
-getCourses();
+async function updateCourse(id) {
+    const result = await Course.updateOne({ _id: id }, {
+        $set: {
+            author: 'Prat',
+            isPublished: true
+        }
+    });
+    console.log(result);
+}
+
+createCourse()
