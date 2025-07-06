@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const { Genre, validate } = require('../models/genres')
+const { Genre, validate } = require('../models/genre')
 
 // DATABASE HANDLING FUNCTIONS
 async function getGenres() {
