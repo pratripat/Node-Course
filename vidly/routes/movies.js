@@ -37,7 +37,7 @@ router.post('/', async (req, res) => {
             dailyRentalRate: req.body.dailyRentalRate
         });
 
-        movie = await movie.save();
+        await movie.save();
         console.log(movie);
         res.send(movie);
     } catch (ex) {
@@ -54,6 +54,13 @@ router.put('/:id', async (req, res) => {
 
         const genre = await Genre.findById(req.body.genreID);
         if (!genre) return res.status(404).send('The genre with the given genreID does not exist...');
+
+        // const movie = await Movie.findById(req.params.id);
+        // if (!movie) return res.status(404).send('The movie with the given ID does not exist...');
+
+        // movie.updateOne({
+        //     title:  
+        // })
 
         const movie = await Movie.findByIdAndUpdate(
             req.params.id, 
