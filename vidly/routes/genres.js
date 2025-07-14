@@ -4,7 +4,8 @@ const admin = require('../middleware/admin');
 const asyncMiddleware = require('../middleware/async');
 const express = require('express');
 const router = express.Router();
-const { Genre, validate } = require('../models/genre')
+const { Genre, validateGenre } = require('../models/genre');
+const validate = require('../middleware/validate');
 
 // DATABASE HANDLING FUNCTIONS
 async function getGenres() {
@@ -39,19 +40,13 @@ router.get('/:id', validateObjectId, async (req, res) => {
     res.send(genre);
 })
 
-router.post('/', auth, async (req, res) => {
-    const { error } = validate(req.body);
-    if (error) return res.status(400).send(error.details[0].message);
-
+router.post('/', [auth, validate(validateGenre)], async (req, res) => {
     const genre = await createGenre(req.body);
 
     res.status(201).send(genre);
 })
 
-router.put('/:id', validateObjectId, async (req, res) => {
-    const { error } = validate(req.body);
-    if (error) return res.status(400).send(error.details[0].message);
-
+router.put('/:id', [validateObjectId, auth, validate(validateGenre)], async (req, res) => {
     const genre = await Genre.findByIdAndUpdate(req.params.id, { name: req.body.name }, {
         new: true
     })

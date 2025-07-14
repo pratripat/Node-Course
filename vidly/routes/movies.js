@@ -1,7 +1,8 @@
 const express = require('express');
 const router = express.Router();
-const { Movie, validate } = require('../models/movie');
+const { Movie, validateMovie } = require('../models/movie');
 const { Genre } = require('../models/genre');
+const validate = require('../middleware/validate');
 
 // USER INTERACTION FUNCTIONS
 router.get('/', async (req, res) => {
@@ -19,10 +20,7 @@ router.get('/:id', async (req, res) => {
     }
 })
 
-router.post('/', async (req, res) => {
-    const { error } = validate(req.body);
-    if (error) return res.status(400).send(error.details[0].message);
-
+router.post('/', validate(validateMovie), async (req, res) => {
     try {
         const genre = await Genre.findById(req.body.genreID);
         if (!genre) return res.status(404).send('The genre with the given genreID does not exist...');
@@ -47,11 +45,8 @@ router.post('/', async (req, res) => {
     }
 })
 
-router.put('/:id', async (req, res) => {
+router.put('/:id', validate(validateMovie), async (req, res) => {
     try {
-        const { error } = validate(req.body);   
-        if (error) return res.status(400).send(error.details[0].message);
-
         const genre = await Genre.findById(req.body.genreID);
         if (!genre) return res.status(404).send('The genre with the given genreID does not exist...');
 

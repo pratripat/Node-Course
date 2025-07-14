@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
-const { Customer, validate } = require('../models/customer');
+const { Customer, validateCustomer } = require('../models/customer');
+const validate = require('../middleware/validate');
 
 // DATABASE HANDLING FUNCTIONS
 async function getCustomers() {
@@ -41,19 +42,13 @@ router.get('/:id', async (req, res) => {
     }
 })
 
-router.post('/', async (req, res) => {
-    const { error } = validate(req.body);
-    if (error) return res.status(400).send(error.details[0].message);
-
+router.post('/', validate(validateCustomer), async (req, res) => {
     const customer = await createCustomer(req.body);
 
     res.status(201).send(customer);
 })
 
-router.put('/:id', async (req, res) => {
-    const { error } = validate(req.body);
-    if (error) return res.status(400).send(error.details[0].message);
-
+router.put('/:id', validate(validateCustomer), async (req, res) => {
     const customer = await Customer.findByIdAndUpdate(req.params.id, { isGold: req.body.isGold, phone: req.body.phone, name: req.body.name }, {
         new: true
     })

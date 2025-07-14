@@ -1,9 +1,10 @@
 const express = require('express');
 const router = express.Router();
-const { Rental, validate } = require('../models/rental');
+const { Rental, validateRental } = require('../models/rental');
 const { Customer } = require('../models/customer');
 const { Movie } = require('../models/movie');
 const mongoose = require('mongoose');
+const validate = require('../middleware/validate');
 
 //USER INTERACTION FUNCTIONS
 router.get('/', async (req, res) => {
@@ -23,24 +24,21 @@ router.get('/:id', async (req, res) => {
     }
 })
 
-router.post('/', async (req, res) => {
-    const { error } = validate(req.body);
-    if (error) return res.status(400).send(error.details[0].message);
-
+router.post('/', validate(validateRental), async (req, res) => {
     const session = await mongoose.startSession();
     session.startTransaction();
 
     try {
-        const customer = await Customer.findById(req.body.customerID).session(session);
+        const customer = await Customer.findById(req.body.customerId).session(session);
         if (!customer) {
             await session.abortTransaction();
-            return res.status(400).send('The customer with the given customerID does not exist...');
+            return res.status(400).send('The customer with the given customerId does not exist...');
         }
 
-        const movie = await Movie.findById(req.body.movieID).session(session);
+        const movie = await Movie.findById(req.body.movieId).session(session);
         if (!movie) {
             await session.abortTransaction();
-            return res.status(400).send('The movie with the given movieID does not exist...');
+            return res.status(400).send('The movie with the given movieId does not exist...');
         }
 
         if (movie.numberInStock === 0) {

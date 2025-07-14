@@ -5,8 +5,8 @@ const config = require('config');
 const express = require('express');
 const bcrypt = require('bcrypt');
 const router = express.Router();
-const { User, validate } = require('../models/user');
-const { JsonWebTokenError } = require('jsonwebtoken');
+const { User, validateUser } = require('../models/user');
+const validate = require('../middleware/validate');
 
 router.get('/', async (req, res) => {
     const users = await User.find();
@@ -18,10 +18,7 @@ router.get('/me', auth, async (req, res) => {
     res.send(user);
 });
 
-router.post('/', async (req, res) => {
-    const { error } = validate(req.body);
-    if (error) return res.status(400).send(error.details[0].message);
-
+router.post('/', validate(validateUser), async (req, res) => {
     let user = await User.findOne({ email: req.body.email })
     if (user) return res.status(400).send('User already registered...');
 
